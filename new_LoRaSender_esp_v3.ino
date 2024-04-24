@@ -37,6 +37,18 @@ TinyGPSPlus gps;
 SoftwareSerial ss(RXPin, TXPin);
 char bufLon[14];
 char bufLat[14];
+char bufAlt[14];
+const int buzzerPin = 25;
+void buz() {
+  // Turn on the buzzer
+  digitalWrite(buzzerPin, HIGH);
+  // Wait for 1 second
+  delay(500);
+  // Turn off the buzzer
+  digitalWrite(buzzerPin, LOW);
+  // Wait for 1 second
+  delay(500);
+}
 void setup() {
   checkSensors=0;
   Serial.begin(115200);
@@ -88,7 +100,13 @@ void setup() {
                           true); // enabled!
   Serial.print(checkSensors);
   ss.begin(GPSBaud);
+  pinMode(buzzerPin, OUTPUT);
+  for (int i = 1; i <= checkSensors; i++) {
+    buz();
+  }
 }
+
+
 void loop(){
   delay(1000);
   // This sketch displays information every time a new sentence is correctly encoded.
@@ -107,9 +125,16 @@ void loop(){
   {
     Serial.print(F("INVALID\n"));
   }
-
-
-    if (millis() > 5000 && gps.charsProcessed() < 10)
+  if (gps.altitude.isUpdated()) {
+    Serial.print("Altitude: ");
+    Serial.print(gps.altitude.meters());
+    Serial.println(" meters");
+    dtostrf(gps.location.lng(), 12, 6, bufAlt);
+  }
+  else{
+    Serial.print(F("INVALID\n"));
+  }
+    if (millis() > 2000 && gps.charsProcessed() < 10)
     {
       Serial.println(F("No GPS detected: check wiring."));
       while(true);
@@ -150,23 +175,23 @@ void loop(){
   Serial.print("Y: "); Serial.print(event.magnetic.y); 
   Serial.print("Z: "); Serial.print(event.magnetic.z); 
   Serial.println(" uTesla ");*/
-  String line=String(counter)+","+String(millis())+","+String(bufLat)+","+String(bufLon)+","+","+String(t)+","+String(p)+","+String(event.magnetic.x)+","+String(event.magnetic.y)+","+String(event.magnetic.z);
+  String line=String(counter)+","+String(millis())+","+String(bufLat)+","+String(bufLon)+","+String(bufAlt)+","+","+String(t)+","+String(p)+","+String(event.magnetic.x)+","+String(event.magnetic.y)+","+String(event.magnetic.z);
   Serial.println(line);
   LoRa.beginPacket();
   LoRa.print(line);
   LoRa.endPacket();
-  myFile = SD.open("test.txt", FILE_WRITE);
+  myFile = SD.open("cansat2024.txt", FILE_WRITE);
   if(myFile){
     myFile.println(line);
     Serial.println("ok to file");
   }
   myFile.close();
   counter++;
-  if(rAlt>localh+800){
+  if(rAlt>localh+500){
     prosgiosi=1;
    }
    if(prosgiosi==1){
-    
+    buz();
    }
   
   

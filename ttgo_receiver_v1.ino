@@ -22,7 +22,7 @@ void getLoRaData() {
   while (LoRa.available()) {
     String LoRaData = LoRa.readString();
     Serial.println(LoRaData); 
-    myFile = SD.open("gksat2.txt", FILE_WRITE);
+    myFile = SD.open("cansat_base_2024.txt", FILE_WRITE);
     if(myFile){
       myFile.println(LoRaData);
       Serial.println("ok to file");
